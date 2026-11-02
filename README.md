@@ -400,7 +400,7 @@ Potential improvements:
 
 AI tools were used during development for problem analysis, architectural discussions, implementation assistance, debugging, test design, benchmarking, and documentation.
 
-The prompt history is provided in [`prompts.md`](prompts.md).
+The prompt history is provided in [`PROMPTS.md`](PROMPTS.md).
 
 The implementation, design decisions, test results, and benchmark outputs were reviewed and validated during development. The repository includes the supporting code and documentation needed to inspect the solution.
 
