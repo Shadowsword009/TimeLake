@@ -82,8 +82,3 @@ The following prompts document the AI-assisted development process, from underst
 39. Help me prepare the README. It should explain the problem, architecture, technology stack, setup, execution, benchmark results, tests and limitations. Make sure it reflects what the code actually does.
 
 40. Let's review the .gitignore. I don't want generated CSV files, Parquet outputs, SQLite databases, caches or the virtual environment uploaded to GitHub. Keep the source code, scripts, tests and documentation.
-
-41. I have created a GitHub repository for TimeLake. Walk me through initializing Git, checking staged files, creating the initial commit, connecting the remote and pushing the project. Give me one command at a time so I can verify each step.
-
-42. Before submission, help me check the repository and documentation against the YottaFlex guidelines. I need to make sure the code, prompt history, setup instructions, benchmark evidence and limitations are all properly documented.
-
