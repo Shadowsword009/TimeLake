@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Generated input and staging data
+/data/input/*
+/data/staging/*
+/data/quarantine/*
+/data/benchmark_input/*
+/data/benchmark_quarantine/*
+/data/recovery_test/*
+
+# Preserve directory placeholders
+!/data/input/.gitkeep
+!/data/staging/.gitkeep
+!/data/quarantine/.gitkeep
+!/data/benchmark_input/.gitkeep
+!/data/benchmark_quarantine/.gitkeep
+!/data/recovery_test/.gitkeep
+
+# Generated lake outputs
+/lake/curated/*
+/lake/benchmark/*
+/lake/compacted/*
+/lake/incremental_test/*
+/lake/late_arrival_test/*
+
+# Preserve directory placeholders
+!/lake/curated/.gitkeep
+!/lake/benchmark/.gitkeep
+!/lake/compacted/.gitkeep
+!/lake/incremental_test/.gitkeep
+!/lake/late_arrival_test/.gitkeep
+
+# Generated databases and SQLite sidecars
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+
+# Generated reports
+/reports/*
+!/reports/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.bak

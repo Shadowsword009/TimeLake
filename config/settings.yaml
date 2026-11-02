@@ -1,0 +1,54 @@
+
+# TimeLake Configuration
+
+project:
+  name: TimeLake
+  version: "1.0"
+
+data:
+  input_dir: data/input
+  staging_dir: data/staging
+  quarantine_dir: data/quarantine
+  output_dir: lake/curated
+  metadata_dir: metadata
+  reports_dir: reports
+
+generator:
+  random_seed: 42
+  default_records: 1000
+  large_records: 100000
+  customer_count: 1000
+  start_date: "2026-01-01"
+  end_date: "2026-06-30"
+
+partitioning:
+  strategy: monthly
+  columns:
+    - year
+    - month
+
+file_sizing:
+  target_size_mb: 128
+  min_file_size_mb: 32
+  max_file_size_mb: 256
+
+validation:
+  allowed_event_types:
+    - login
+    - product_view
+    - add_to_cart
+    - purchase
+    - cancellation
+
+  amount_zero_events:
+    - login
+    - product_view
+
+  allow_negative_amount: false
+
+storage:
+  format: parquet
+  compression: snappy
+
+logging:
+  level: INFO
