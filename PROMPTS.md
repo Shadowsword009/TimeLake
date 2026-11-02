@@ -3,85 +3,87 @@
 
 The following prompts document the AI-assisted development process, from understanding the assignment and designing the architecture to implementation, testing, benchmarking and preparing the final project.
 
-1. I have received a 72-hour data engineering coding challenge. The problem statement is to design a partitioning and file-sizing strategy for a time-partitioned data lake. Help me understand the requirements, expected deliverables and how the solution should demonstrate partition pruning and avoid excessive small files.
+1. I have received a 72-hour coding challenge from YottaFlex.ai. The problem is to design a partitioning and file-sizing strategy for a time-partitioned data lake. Help me understand what exactly they expect and what I should demonstrate in the solution.
 
-2. I want to implement this project using Python and locally runnable tools. Suggest a suitable technology stack that is simple to set up but still demonstrates proper data engineering concepts.
+2. I want to build this locally using Python. Suggest a technology stack that is practical for this challenge without introducing unnecessary infrastructure or complicated dependencies.
 
-3. Help me design the architecture for TimeLake. I want to understand the complete flow from data generation and ingestion to validation, transformation, partitioning, Parquet storage and analytical querying.
+3. Before writing code, let's design the architecture. I want the pipeline to cover ingestion, validation, transformation, partitioning, Parquet storage and querying.
 
-4. Help me create a clean project folder structure. Separate source code, scripts, tests, configuration, sample data, generated lake outputs, metadata and documentation.
+4. Help me organize the project into a proper folder structure. I want separate folders for source code, scripts, tests, data, lake outputs, metadata and documentation.
 
-5. Let's start with synthetic data generation. Create a deterministic data generator for customer and event datasets. Include event timestamps, ingestion timestamps, event types and transaction amounts.
+5. Let's start with generating synthetic data. Create customer and event datasets with realistic timestamps, event types and transaction amounts. The generator should produce repeatable results.
 
-6. Introduce realistic data-quality issues into the generated dataset, including duplicate events, missing identifiers, invalid customer references, invalid event types and invalid transaction amounts.
+6. We also need some bad records to demonstrate data quality handling. Add duplicate events, missing identifiers, invalid customer references and invalid transaction amounts.
 
-7. Implement CSV ingestion for the event and customer datasets. Validate the required columns and handle missing or empty input files appropriately.
+7. Now implement the ingestion module. It should read the CSV files and check whether the required columns are present. Handle missing and empty files properly.
 
-8. Help me implement a data validation module. Check mandatory fields, customer references, timestamps, event types and transaction amounts. Invalid records should be quarantined with clear rejection reasons.
+8. Let's implement validation. Check customer references, timestamps, event types and amounts. I also want rejected records to be written to a separate quarantine folder with the reason for rejection.
 
-9. Implement event deduplication using event_id. Make sure duplicate records are handled deterministically and the earliest ingestion timestamp is retained.
+9. Implement deduplication using event_id. If duplicates exist, retain the record with the earliest ingestion timestamp.
 
-10. Implement the transformation layer. Convert timestamps to UTC, derive event_date, year and month, and prepare the dataset for time-based partitioning.
+10. Now work on the transformation layer. Convert timestamps to UTC and derive the date, year and month fields required for partitioning.
 
-11. Help me implement partitioned Parquet storage using year and month derived from event_timestamp. Explain why event time should determine partition placement instead of ingestion time.
+11. Implement the Parquet storage layer. I want the output organized by year and month, based on event_timestamp. Explain why event time is a better partitioning key than ingestion time for this use case.
 
-12. Design a file-sizing strategy for the Parquet writer. I want configurable target and maximum file sizes, compression and a way to estimate rows per file based on actual data characteristics.
+12. Let's work on file sizing. A fixed number of rows per file may not produce consistent file sizes, so I want a strategy based on estimated compressed data size.
 
-13. Implement a byte-aware Parquet writer using PyArrow. It should estimate compressed bytes per row, divide data into chunks and recursively split files that exceed the maximum size.
+13. Implement the size-aware Parquet writer using PyArrow. It should estimate the compressed bytes per row, calculate chunk sizes and split a batch further if the resulting file exceeds the maximum size.
 
-14. Add safe publication to the storage layer. Use staging and backup directories, verify the written record counts and restore the previous dataset if publication fails.
+14. What happens if writing succeeds but publishing the output fails? Add staging and backup handling so the previous valid dataset is not lost.
 
-15. Help me design a compaction strategy for small Parquet files. Compact files within the same time partition, preserve all records and verify the resulting dataset.
+15. I also need a compaction strategy. The benchmark will produce several small files, so implement a way to combine files within the same partition without losing records.
 
-16. Implement the compaction module using the shared file-sizing logic. Support staging, backup and rollback so that failed compaction does not destroy the existing output.
+16. Make compaction use the same file-sizing logic as the main storage layer. It should verify record counts and handle failures safely.
 
-17. I want to demonstrate partition pruning using DuckDB. Create a benchmark that compares a time-filtered query on partitioned Parquet data against an equivalent query on an unpartitioned Parquet file.
+17. Now we need to demonstrate partition pruning. Use DuckDB to compare a query against partitioned Parquet files with an equivalent query against an unpartitioned file.
 
-18. Generate a larger benchmark dataset with 100,000 base events. Measure query execution time, data read, files scanned and query results. Make sure both datasets return equivalent results.
+18. Generate a larger dataset with 100,000 base events so the benchmark is more meaningful. Compare the query results and measure execution time and data read.
 
-19. Help me inspect DuckDB query plans using EXPLAIN ANALYZE. I want to demonstrate that monthly partition filters reduce the number of Parquet files scanned.
+19. I want to see actual evidence that partition pruning is happening. Use EXPLAIN ANALYZE and show how many files are scanned for a month-specific query.
 
-20. After compaction, verify that the number of files has decreased without losing records. Also demonstrate that partition pruning continues to work on the compacted dataset.
+20. Let's verify compaction as well. Check that the file count decreases, all records are preserved and partition pruning still works after compaction.
 
-21. I want to support late-arriving events. Demonstrate a case where an event generated in January arrives in February and verify that it is stored in the January partition using event_timestamp.
+21. We should also demonstrate late-arriving data. Create an event that occurred in January but arrived in February and verify that it is stored in the January partition.
 
-22. Help me design an incremental ingestion workflow. It should identify previously processed event IDs, filter new events and write only new records without reprocessing the existing dataset.
+22. The assignment should demonstrate more than a full refresh. Let's add incremental processing so that new events can be processed without rewriting the entire dataset.
 
-23. Implement an SQLite event registry to track processed event IDs. Make registration safe against duplicate entries and ensure that the registry persists between pipeline executions.
+23. Use SQLite for an event registry. It should keep track of processed event IDs between runs and avoid registering the same event more than once.
 
-24. Make incremental storage idempotent. Use deterministic batch identification and content fingerprints so that an identical retry is accepted while changed content for previously published event IDs is rejected.
+24. Make incremental writes idempotent. If the same batch is submitted again, it should not create duplicate output. If the content changes for already published event IDs, reject it.
 
-25. What happens if a failure occurs after a batch is published but before the event registry is updated? Help me design a recovery mechanism that allows the same batch to be retried safely.
+25. Consider a failure after the Parquet batch has been published but before the event registry is updated. How can we retry the batch without creating duplicate data?
 
-26. Add pipeline observability. Track run IDs, timestamps, pipeline types, execution status, input records, valid records, rejected records, duplicates, output records and generated Parquet file counts using SQLite.
+26. Let's add pipeline observability. Track run IDs, timestamps, pipeline type, status and record counts. Store the execution details in SQLite.
 
-27. Make sure failed pipeline executions are recorded with their error information. Also ensure that successful runs update their metrics only after the corresponding storage operation succeeds.
+27. Make sure failed runs are recorded too. I want the error message and run status to be persisted, and output metrics should only be updated after successful storage.
 
-28. Help me write automated tests for the major components. Cover data generation, ingestion, validation, file sizing, storage, compaction, event registry, incremental processing and run tracking.
+28. Now let's add automated tests for the individual modules. Cover generation, ingestion, validation, storage, file sizing, compaction, incremental processing and run tracking.
 
-29. I encountered issues while running the tests. Help me understand the terminal errors and fix them without breaking existing functionality. Ensure that pytest collects only the intended tests and does not execute standalone demonstration scripts during collection.
+29. I'm encountering issues while running the tests. I'll share the terminal output. Help me identify the actual problem and fix it without unnecessarily changing working code.
 
-30. Help me test storage recovery. Simulate failures during publication and verify that the previous valid dataset remains available.
+30. Some standalone scripts have names beginning with test_. Pytest is collecting them along with the actual test suite. Configure test discovery so only the intended tests are collected.
 
-31. Review the incremental pipeline for idempotency and recovery. Test identical retries, changed content, duplicate event IDs and failures between batch publication and registry updates.
+31. Let's test storage recovery by simulating a failure during publication. Verify that the previous dataset remains intact.
 
-32. Run the complete test suite and help me verify that all tests pass. Identify any warnings, environment-specific issues or test collection problems.
+32. Test the incremental pipeline more thoroughly. I want to verify identical retries, changed batch content, duplicate event IDs and recovery when registry registration fails after publishing.
 
-33. Help me document the source and target schemas. Include event fields, customer fields, derived partition columns, data types, validation rules and the purpose of each field.
+33. Review the SQLite registry implementation. Make sure it handles database creation correctly, including when a database filename is provided without a parent directory.
 
-34. Create an architecture document explaining the complete TimeLake processing flow, its components, storage layout and interactions between the full-refresh and incremental pipelines.
+34. Let's run the complete test suite. Check the number of passing tests and whether there are any warnings or collection issues.
 
-35. Help me document the major design decisions and trade-offs in TimeLake. Explain monthly partitioning, Parquet, Snappy compression, file sizing, compaction, incremental processing, idempotency, recovery and observability.
+35. Help me prepare the data dictionary. Document the source schemas, target schema, field descriptions, derived partition columns and validation rules.
 
-36. Help me prepare a README for GitHub. Include the problem statement, solution overview, architecture, technology stack, project structure, setup instructions, execution commands, benchmark results, testing instructions, design decisions and limitations. Make sure the documentation reflects the actual implementation.
+36. Now prepare the architecture documentation. Explain how the components work together, including the full-refresh pipeline, incremental pipeline, storage and metadata tracking.
 
-37. Review the project structure and identify unnecessary or empty files. Check whether modules are actually used before recommending new abstractions or refactoring existing working code.
+37. Document the design decisions and trade-offs. I want to explain monthly partitioning, Parquet, compression, file sizing, compaction, incremental processing, idempotency and recovery.
 
-38. Help me prepare the .gitignore file. Identify generated CSV files, Parquet datasets, SQLite databases, Python caches, virtual environments, logs and temporary files that should not be committed, while preserving source code, tests and documentation.
+38. Let's review the implementation before finalizing it. Check for unnecessary modules and abstractions. I prefer keeping the working implementation straightforward rather than refactoring everything just for the sake of structure.
 
-39. Review the complete project before GitHub submission. Verify the project structure, test results, generated artifacts, documentation and repository contents.
+39. Help me prepare the README. It should explain the problem, architecture, technology stack, setup, execution, benchmark results, tests and limitations. Make sure it reflects what the code actually does.
 
-40. Help me prepare the final GitHub repository. Explain how to initialize Git, stage the correct files, create meaningful commits, connect the remote repository and push the project.
+40. Let's review the .gitignore. I don't want generated CSV files, Parquet outputs, SQLite databases, caches or the virtual environment uploaded to GitHub. Keep the source code, scripts, tests and documentation.
 
-41. Review the final submission against the YottaFlex guidelines. Check that the repository is publicly accessible, setup and verification instructions are clear, benchmark claims are supported by actual results and AI prompt history is included.
+41. I have created a GitHub repository for TimeLake. Walk me through initializing Git, checking staged files, creating the initial commit, connecting the remote and pushing the project. Give me one command at a time so I can verify each step.
+
+42. Before submission, help me check the repository and documentation against the YottaFlex guidelines. I need to make sure the code, prompt history, setup instructions, benchmark evidence and limitations are all properly documented.
 
